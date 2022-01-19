@@ -144,37 +144,60 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 	@Nullable
 	private String scope = SCOPE_DEFAULT;
 
+	//是否是抽象，对应bean属性abstract
 	private boolean abstractFlag = false;
 
 	@Nullable
 	private Boolean lazyInit;
 
+	//自动注入模式，对应bean属性autowire,默认不进行自动装配
 	private int autowireMode = AUTOWIRE_NO;
 
+	//是否进行依赖检查,默认不进行依赖检查
 	private int dependencyCheck = DEPENDENCY_CHECK_NONE;
 
+	//用来表示一个bean的实例化是否依靠另一个bean的实例化，先加载dependsOn的bean，
+	//对应bean属性depend-on
+	//@DependOn
 	@Nullable
 	private String[] dependsOn;
 
+	/**
+	 * autowire-candidate属性设置为false，这样容器在查找自动装配对象时，
+	 * 将不考虑该bean，即它不会被考虑作为其他bean自动装配的候选者，
+	 * 但是该bean本身还是可以使用自动装配来注入其他bean的
+	 */
 	private boolean autowireCandidate = true;
 
+	/**
+	 * 自动装配时出现多个bean候选者时，将作为首选者，对应bean属性primary，默认不是首选的
+	 * @Primary
+	 */
 	private boolean primary = false;
 
+	/**
+	 * 用于记录Qualifier，对应子元素qualifier <bean><qualifier></qualifier></bean>
+	 * 如果容器中有多个相同类型的 bean,这时我们就可以使用qualifier属性来设置加载指定Bean名称的bean
+	 * @Qualifier
+	 */
 	private final Map<String, AutowireCandidateQualifier> qualifiers = new LinkedHashMap<>();
 
 	@Nullable
 	private Supplier<?> instanceSupplier;
 
+	//是否允许访问非public方法和属性, 默认是true
 	private boolean nonPublicAccessAllowed = true;
 
 	private boolean lenientConstructorResolution = true;
 
+	//工厂类名,对应bean属性factory-bean
 	@Nullable
 	private String factoryBeanName;
 
 	@Nullable
 	private String factoryMethodName;
 
+	//记录构造函数注入属性，对应bean属性constructor-arg
 	@Nullable
 	private ConstructorArgumentValues constructorArgumentValues;
 

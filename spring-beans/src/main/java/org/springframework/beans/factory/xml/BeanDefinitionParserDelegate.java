@@ -414,7 +414,8 @@ public class BeanDefinitionParserDelegate {
 	public BeanDefinitionHolder parseBeanDefinitionElement(Element ele, @Nullable BeanDefinition containingBean) {
 		String id = ele.getAttribute(ID_ATTRIBUTE);
 		String nameAttr = ele.getAttribute(NAME_ATTRIBUTE);
-
+		// 将bean元素的name放入别名数组中,spring支持两种方式定义别名，
+		// 一种是通过<alias>,另一种是<bean name=""/>
 		List<String> aliases = new ArrayList<>();
 		if (StringUtils.hasLength(nameAttr)) {
 			String[] nameArr = StringUtils.tokenizeToStringArray(nameAttr, MULTI_VALUE_ATTRIBUTE_DELIMITERS);
@@ -422,6 +423,7 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		String beanName = id;
+		// 如果beanName为空 并且别名集合不为空，将第一个别名作为beanName
 		if (!StringUtils.hasText(beanName) && !aliases.isEmpty()) {
 			beanName = aliases.remove(0);
 			if (logger.isTraceEnabled()) {
@@ -429,20 +431,38 @@ public class BeanDefinitionParserDelegate {
 						"' as bean name and " + aliases + " as aliases");
 			}
 		}
-
+		// 内部Bean为空时
+		// 什么情况下不为空呢？也就是有内部类时
+		/**
+		 * <bean  class="com.gongj.bean.User" name="user2,use" id="user">
+		 * 		<property name="vip">
+		 * 			<bean id="inner" class="com.gongj.bean.User$Vip">
+		 * 				<constructor-arg ref="user"/>
+		 * 				<property name="vipLevel" value="9"/>
+		 * 			</bean>
+		 * 		</property>
+		 * 	</bean>
+		 *
+		 */
 		if (containingBean == null) {
 			checkNameUniqueness(beanName, aliases, ele);
 		}
 
+		// 对bean标签的其他属性进行解析，并封装在 GenericBeanDefinition 类型的实例中
 		AbstractBeanDefinition beanDefinition = parseBeanDefinitionElement(ele, beanName, containingBean);
 		if (beanDefinition != null) {
+			//如果不存在 beanName
 			if (!StringUtils.hasText(beanName)) {
 				try {
 					if (containingBean != null) {
+						//那么根据 BeanDefinitionReaderUtils 提供的命名规则为当前
+						//bean 生成对应的beanName
 						beanName = BeanDefinitionReaderUtils.generateBeanName(
 								beanDefinition, this.readerContext.getRegistry(), true);
 					}
 					else {
+						// 根据 XmlReaderContext 生成对应的beanName
+						//类似于 com.gongj.bean.User#0
 						beanName = this.readerContext.generateBeanName(beanDefinition);
 						// Register an alias for the plain bean class name, if still possible,
 						// if the generator returned the class name plus a suffix.
@@ -512,8 +532,9 @@ public class BeanDefinitionParserDelegate {
 		}
 
 		try {
+			//将class与parentName作为参数，创建一个 GenericBeanDefinition 实例
 			AbstractBeanDefinition bd = createBeanDefinition(className, parent);
-
+			//解析默认 bean 标签的各种属性,通过set方法进行属性赋值
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
 
@@ -555,10 +576,12 @@ public class BeanDefinitionParserDelegate {
 	 */
 	public AbstractBeanDefinition parseBeanDefinitionAttributes(Element ele, String beanName,
 			@Nullable BeanDefinition containingBean, AbstractBeanDefinition bd) {
-
+		//解析 singleton 属性
 		if (ele.hasAttribute(SINGLETON_ATTRIBUTE)) {
+			//'singleton'属性升级到'scope'声明
 			error("Old 1.x 'singleton' attribute in use - upgrade to 'scope' declaration", ele);
 		}
+		//解析 scope 属性
 		else if (ele.hasAttribute(SCOPE_ATTRIBUTE)) {
 			bd.setScope(ele.getAttribute(SCOPE_ATTRIBUTE));
 		}

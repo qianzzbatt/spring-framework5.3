@@ -127,6 +127,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	private final XmlValidationModeDetector validationModeDetector = new XmlValidationModeDetector();
 
+	//当前正在加载的XML bean定义资源，使用ThreadLocal ，这样可以避免资源重复加载
 	private final ThreadLocal<Set<EncodedResource>> resourcesCurrentlyBeingLoaded =
 			new NamedThreadLocal<Set<EncodedResource>>("XML bean definition resources currently being loaded"){
 				@Override
@@ -323,8 +324,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			logger.trace("Loading XML bean definitions from " + encodedResource);
 		}
 
+		//获得当前正在加载的XML bean定义资源
 		Set<EncodedResource> currentResources = this.resourcesCurrentlyBeingLoaded.get();
-
+		//判断currentResources中是否包含encodedResource，如果有则抛出异常，没有则加入
 		if (!currentResources.add(encodedResource)) {
 			throw new BeanDefinitionStoreException(
 					"Detected cyclic loading of " + encodedResource + " - check your import definitions!");
@@ -387,7 +389,9 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			throws BeanDefinitionStoreException {
 
 		try {
+			//将资源文件解析成 Document 对象
 			Document doc = doLoadDocument(inputSource, resource);
+			//根据返回的Dcoument注册Bean信息
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -506,9 +510,13 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see BeanDefinitionDocumentReader#registerBeanDefinitions
 	 */
 	public int registerBeanDefinitions(Document doc, Resource resource) throws BeanDefinitionStoreException {
+		// 创建BeanDefinitionDocumentReader对象，完成 BeanDefinition 的解析和注册
 		BeanDefinitionDocumentReader documentReader = createBeanDefinitionDocumentReader();
+		//之前的BeanDefinition数量
 		int countBefore = getRegistry().getBeanDefinitionCount();
+		// 注册
 		documentReader.registerBeanDefinitions(doc, createReaderContext(resource));
+		// 本次注册的数量
 		return getRegistry().getBeanDefinitionCount() - countBefore;
 	}
 
