@@ -125,6 +125,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 		// the new (child) delegate with a reference to the parent for fallback purposes,
 		// then ultimately reset this.delegate back to its original (parent) reference.
 		// this behavior emulates a stack of delegates without actually necessitating one.
+		/*
+            任何嵌套的beans元素都将导致此方法中的递归。 为了正确传播和保留<beans> default-* 属性，跟踪当前的
+            父委托，可能为null。
+            创建新的（子）委托，引用父项以进行回退，然后最终将this.delegate重置为其原始（父）引用。 此行为模拟了一堆代理，而实际上并不需要一个代理。
+         */
 		//创建代理对象，解析 Element 的各种方法
 		BeanDefinitionParserDelegate parent = this.delegate;
 		this.delegate = createDelegate(getReaderContext(), root, parent);
@@ -153,9 +158,11 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 				}
 			}
 		}
-
+		// 在解析Bean定义之前，进行自定义的解析，增强解析过程的可扩展性
 		preProcessXml(root);
+		// 委托给BeanDefinitionParserDelegate,从Document的根元素开始进行BeanDefinition的解析
 		parseBeanDefinitions(root, this.delegate);
+		// 在解析Bean定义之后，进行自定义的解析，增加解析过程的可扩展性
 		postProcessXml(root);
 
 		this.delegate = parent;
@@ -201,6 +208,7 @@ public class DefaultBeanDefinitionDocumentReader implements BeanDefinitionDocume
 
 	private void parseDefaultElement(Element ele, BeanDefinitionParserDelegate delegate) {
 		// 解析import标签  <import resource="spring-config.xml"></import>
+		//会产生递归调用
 		if (delegate.nodeNameEquals(ele, IMPORT_ELEMENT)) {
 			importBeanDefinitionResource(ele);
 		}
