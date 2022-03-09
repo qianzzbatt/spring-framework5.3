@@ -337,6 +337,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 			if (encodedResource.getEncoding() != null) {
 				inputSource.setEncoding(encodedResource.getEncoding());
 			}
+			//xml文件以指定字符格式转化为了输入流，在这里进行解析
 			return doLoadBeanDefinitions(inputSource, encodedResource.getResource());
 		}
 		catch (IOException ex) {
@@ -391,7 +392,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 		try {
 			//将资源文件解析成 Document 对象
 			Document doc = doLoadDocument(inputSource, resource);
-			//根据返回的Dcoument注册Bean信息
+			// 通过对Document对象的操作，完成BeanDefinition的加载和注册工作
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);

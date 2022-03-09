@@ -537,13 +537,17 @@ public class BeanDefinitionParserDelegate {
 			//解析默认 bean 标签的各种属性,通过set方法进行属性赋值
 			parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
 			bd.setDescription(DomUtils.getChildElementValueByTagName(ele, DESCRIPTION_ELEMENT));
-
+			//用来解析 Meta 数据
 			parseMetaElements(ele, bd);
+			//解析 lookup-method 属性
 			parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+			//解析 replace-method 属性
 			parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
-
+			//解析构造函数参数
 			parseConstructorArgElements(ele, bd);
+			// 解析 property 子元素
 			parsePropertyElements(ele, bd);
+			//解析 qualifier 子元素
 			parseQualifierElements(ele, bd);
 
 			bd.setResource(this.readerContext.getResource());
